@@ -1,0 +1,75 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trainer | {% block title %}{% endblock title %}</title>
+    {% tailwind_css %} 
+</head>
+<body class="bg-blue-100">
+
+    <!-- Alpine.js root element for controlling sidebar -->
+    <div class="flex min-h-screen" x-data="{ sidebarOpen: false }">
+        <!-- Sidebar -->
+        <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" 
+            class="fixed w-64 min-h-screen px-4 py-8 text-white transition-transform duration-300 ease-in-out transform bg-blue-800 lg:relative lg:translate-x-0">
+            <h2 class="mb-6 text-2xl font-bold text-center">Trainer Dashboard</h2>
+            <nav>
+                <a href="#" class="block px-4 py-2 rounded hover:bg-blue-700">Dashboard</a>
+                <a href="#" class="block px-4 py-2 rounded hover:bg-blue-700">Students</a>
+                <a href="#" class="block px-4 py-2 rounded hover:bg-blue-700">Courses</a>
+                <a href="#" class="block px-4 py-2 rounded hover:bg-blue-700">Assignments</a>
+                <a href="#" class="block px-4 py-2 rounded hover:bg-blue-700">Schedules</a>
+                <a href="#" class="block px-4 py-2 rounded hover:bg-blue-700">Grades</a>
+                <a href="#" class="block px-4 py-2 rounded hover:bg-blue-700">Reports</a>
+                <a href="#" class="block px-4 py-2 rounded hover:bg-blue-700">Settings</a>
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="block w-full px-4 py-2 mt-4 text-left rounded hover:bg-blue-700">Logout</button>
+                </form>
+            </nav>
+        </div>
+
+        <!-- Overlay for mobile when the sidebar is open -->
+        <div :class="sidebarOpen ? 'block' : 'hidden'" 
+            @click="sidebarOpen = false" 
+            class="fixed inset-0 bg-black opacity-50 lg:hidden">
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex flex-col flex-1">
+            <!-- Navbar -->
+            <header class="flex items-center justify-between px-6 py-4 bg-white shadow">
+                <!-- Sidebar Toggle Button -->
+                <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden">
+                    <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+
+                <div>
+                    <h1 class="text-xl font-semibold text-gray-800">{% block header %}Welcome, Trainer{% endblock header %}</h1>
+                </div>
+
+                <div class="relative">
+                    <button class="flex items-center justify-center w-10 h-10 bg-gray-200 rounded-full">
+                        <img src="https://via.placeholder.com/40" alt="User" class="rounded-full">
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="flex-1 p-6 bg-blue-100">
+                {% block content %}
+                {% endblock content %}
+            </main>
+        </div>
+    </div>
+
+    {% block extra_body %}
+    {% endblock extra_body %}
+
+    <script src="{% static 'js/alpinejs.min.js' %}"></script>
+</body>
+</html>

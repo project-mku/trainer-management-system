@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Login
+{% endblock title %}
+
+{% block content %}
+ <div class="mx-auto content">
+    
+
+<form method="post" class="max-w-sm mx-auto mt-10">
+  
+  {% if messages %}
+    {% for message in messages %}
+      {% if message.tags == 'info' %}
+      <div class="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-800 dark:text-yellow-300" role="alert">
+        <span class="font-medium">Warning!</span> {{message}}
+      </div>
+
+      {% elif message.tags == 'success' %}
+        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
+          <span class="font-medium">Success!</span> {{message}}
+        </div>
+        
+        {% elif message.tags == 'error' %}
+        <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+          <span class="font-medium">Error!</span> {{message}}
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}  
+  
+    {% csrf_token %}
+    <div class="mt-5 mb-5 top">
+        <h1 class="text-3xl font-bold">Set Account Role</h1>
+    </div>
+    
+    <!-- Email (Readonly as we're setting roles, not editing email) -->
+    <div>
+      <label for="email" class="block text-sm font-medium text-gray-700">User Role</label>
+      <input type="email" name="email" id="email" value="{% if request.user.is_trainer %}
+        Trainer {% elif request.user.manager %} Manager {% else %} No Role Set {% endif %}" readonly
+              class="block w-full p-2 mt-1 mb-5 text-gray-500 bg-gray-100 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+    </div>
+    
+    <!-- Radio buttons for Trainer and Manager roles -->
+    <fieldset>
+      <legend class="text-sm font-medium text-gray-700">Select Role</legend>
+      <div class="mt-4 space-y-4">
+        
+        <!-- Radio for Trainer -->
+        <div class="flex items-center">
+          <input id="is_trainer" name="role" type="radio" value="trainer" 
+            class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+            {% if user.is_trainer %}checked{% endif %}>
+          <label for="is_trainer" class="block ml-3 text-sm font-medium text-gray-700">
+            Trainer
+          </label>
+        </div>
+
+        <!-- Radio for Manager -->
+        <div class="flex items-center">
+          <input id="is_manager" name="role" type="radio" value="manager"
+            class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+            {% if user.is_manager %}checked{% endif %}>
+          <label for="is_manager" class="block ml-3 text-sm font-medium text-gray-700">
+            Manager
+          </label>
+        </div>
+
+      </div>
+    </fieldset>     
+
+    <button type="submit" class="text-white mt-5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center">Submit</button>
+    
+  </form>
+      
+ </div>
+{% endblock content %}
