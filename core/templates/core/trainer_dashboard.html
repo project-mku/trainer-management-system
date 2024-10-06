@@ -7,10 +7,28 @@
 {% block header %}Welcome {{ request.user.username | title }}. {% endblock header %}
 
 {% block content %}
+{% if messages %}
+{% for message in messages %}
+
+  {% if message.tags == 'info' %}
+    <div class="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50" role="alert">
+      <span class="font-medium">Warning!</span> {{ message }}
+    </div>
+  {% elif message.tags == 'success' %}
+    <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+      <span class="font-medium">Success!</span> {{ message }}
+    </div>
+  {% elif message.tags == 'error' %}
+    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+      <span class="font-medium">Error!</span> {{ message }}
+    </div>  
+  {% endif %}
+{% endfor %}
+{% endif %}
 <div class="p-4 bg-white rounded-lg shadow">
     <h2 class="mb-4 text-xl font-semibold">Trainer Dashboard Overview</h2>
     <p>Welcome to your dashboard! Here you can manage your projects, teams, and reports.</p>
-    
+
     <!-- Additional content and components can go here -->
     <div class="mt-6">
         <h3 class="text-lg font-semibold">Upcoming Training Sessions</h3>

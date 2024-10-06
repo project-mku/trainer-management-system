@@ -8,30 +8,49 @@ Welcome {{request.user.username | title}}
 
 {% block content %}
     <div class="container mx-auto mt-6">
+        {% if messages %}
+        {% for message in messages %}
+        
+          {% if message.tags == 'info' %}
+            <div class="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50" role="alert">
+              <span class="font-medium">Warning!</span> {{ message }}
+            </div>
+          {% elif message.tags == 'success' %}
+            <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+              <span class="font-medium">Success!</span> {{ message }}
+            </div>
+          {% elif message.tags == 'error' %}
+            <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+              <span class="font-medium">Error!</span> {{ message }}
+            </div>  
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+      
         <h2 class="mb-4 text-2xl font-semibold">Overview</h2>
         <p class="mb-4">Here you can manage your projects, team members, and reports.</p>
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             <!-- Card 1 -->
-            <!-- <div class="p-4 bg-white rounded shadow">
-                <h3 class="text-lg font-semibold">Projects</h3>
-                <p>View and manage your ongoing projects.</p>
-                <a href="#" class="inline-block mt-2 text-blue-500 hover:underline">Go to Projects</a>
-            </div> -->
+            <div class="p-4 bg-white rounded shadow">
+                <h3 class="text-lg font-semibold">Trainers</h3>
+                <p>All Registered Trainers.</p>
+                <a href="{% url 'trainers_management' %}" class="inline-block mt-2 text-blue-500 hover:underline">Go to Trainers</a>
+            </div>
 
             <!-- Card 2 -->
-            <!-- <div class="p-4 bg-white rounded shadow">
-                <h3 class="text-lg font-semibold">Team</h3>
-                <p>Manage your team members and roles.</p>
-                <a href="#" class="inline-block mt-2 text-blue-500 hover:underline">View Team</a>
-            </div> -->
+            <div class="p-4 bg-white rounded shadow">
+                <h3 class="text-lg font-semibold">Trainers<h3>
+                <p>Manage all users in the system</p>
+                <a href="{% url 'user_management' %}" class="inline-block mt-2 text-blue-500 hover:underline">View all users</a>
+            </div>
 
             <!-- Card 3 -->
-            <!-- <div class="p-4 bg-white rounded shadow">
+            <div class="p-4 bg-white rounded shadow">
                 <h3 class="text-lg font-semibold">Reports</h3>
-                <p>Generate and view reports for your projects.</p>
+                <p>Generate and view reports for your Trainers.</p>
                 <a href="#" class="inline-block mt-2 text-blue-500 hover:underline">See Reports</a>
-            </div> -->
+            </div>
 
             <!-- Will Add more cards or sections as needed -->
         </div>

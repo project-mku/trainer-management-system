@@ -1,6 +1,8 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth import authenticate, login
-from .forms import CustomUserCreationForm
+
+from core.models import ManagerAuthenticationCodes, SchoolAccount, Payroll, Manager, Trainer, CustomUser
+from .forms import CustomUserCreationForm, CustomUserUpdateForm, ManageUpdateForm, SchoolAccountUpdateForm, SchoolAccountAddForm, TrainerUpdateForm, TrainerAddForm
 from django.contrib import messages
 
 def get_dashboard_url(user):
@@ -17,18 +19,35 @@ def account_login(request):
     #     return redirect(get_dashboard_url(request.user))
     
     if request.method == 'POST':
-        email = request.POST.get('email', '')
+        username_or_email = request.POST.get('username_or_email', '')
         password = request.POST.get('password', '')
 
-        print(email, password)
+        # Initialize user as None
+        user = None
+        
+        # Check if logging in with email or username
+        if '@' in username_or_email:
+            # Email-based login
+            user = authenticate(email=username_or_email, password=password)
+        else:
+            # Username-based login
+            user = authenticate(username=username_or_email, password=password)
 
-        user = authenticate(email=email, password=password)
+        # If user is authenticated
         if user is not None:
             login(request, user)
             messages.success(request, 'Logged in Successfully')
-            return redirect('index')
+
+            # Redirect based on role
+            if user.is_manager:
+                return redirect('manager_dashboard')
+            elif user.is_trainer:
+                return redirect('trainer_dashboard')
+            else:
+                return redirect('set_account_role')
         else:
-            messages.error(request, 'Invalid email or password')
+            messages.error(request, 'Invalid email/username or password')
+            return redirect('account_login')
 
     # If not a POST request or if authentication fails, render login page
     return render(request, 'registration/login.html')
@@ -51,42 +70,326 @@ def register(request):
 
 def set_account_role(request):
     
-   
-
     if request.method == 'POST':
         role = request.POST.get('role')
 
         if role == 'trainer':
             request.user.is_trainer = True
             request.user.save()
+
+            # Create a trainer object
+            trainer = Trainer.objects.create(user=request.user, email=request.user.email)
+            trainer.save()
+
             messages.success(request, 'You are now a trainer')
             return redirect('trainer_dashboard')
         
         elif role == 'manager':
-            request.user.is_manager = True
-            request.user.save()
-            messages.success(request, 'Your account has been updated successfully. You are now a manager')
-            return redirect('manager_dashboard')
-        else:
+            
+            request.user.is_temp_manager = True
+            request.user.save()  # Save the temporary status in the database
+
+            messages.info(request, 'Please authenticate to become a manager')
+            return redirect('authenticate_manager')
+
+        else:   
             return redirect('set_account_role')
         
 
     return render(request, 'registration/set_account_role.html')
 
+def authenticate_manager(request):
+    system_codes = list(ManagerAuthenticationCodes.objects.values_list('code', flat=True))
+    print(system_codes)
+
+    if request.method == 'POST':
+        code = request.POST.get('code')
+        if code in system_codes:
+            request.user.is_temp_manager = False
+            request.user.is_manager = True
+            request.user.save()
+
+            # Create a manager object
+            manager = Manager.objects.create(user=request.user)
+            manager.save()
+
+            messages.success(request, 'Authentication successful. You are now a manager')
+            return redirect('manager_dashboard')
+        else:
+            messages.error(request, 'Authentication failed')
+            return redirect('authenticate_manager')
+
+    return render(request, 'registration/authenticate_manager.html')
+
 def index(request):
 
     return render(request, 'core/index.html')
 
+
+# ============================= Manager Dashboard Area =============================
 def manager_dashboard(request):
 
-    
-
+    manager = Manager.objects.get(user=request.user)
+    if not manager.is_updated:
+        messages.error(request, 'Please update your details first')
+        return redirect('manager_update')
     
     return render(request, 'core/manager_dashboard.html')
 
+def manager_update(request):
+    update_form = ManageUpdateForm()
+    manager = Manager.objects.get(user=request.user)
+
+    if request.method == 'POST':
+        update_form = ManageUpdateForm(request.POST, instance=manager)
+        if update_form.is_valid():
+            update_form.save()
+            manager.is_updated = True
+            manager.save()
+            messages.success(request, 'Manager details updated successfully')
+            return redirect('manager_dashboard')
+        else:
+            messages.error(request, 'Manager details update failed')
+            return redirect('manager_update')
+    else:
+        update_form = ManageUpdateForm(instance=manager)
+
+    context = {
+        'update_form': update_form
+    }
+
+    return render(request, 'core/management/manager_update.html', context)
+
+def user_management(request):
+    manager = Manager.objects.get(user=request.user)
+
+    if not manager.is_updated:
+        messages.error(request, 'Please update your details first')
+        return redirect('manager_update')
+    users = CustomUser.objects.all().order_by('-date_joined')
+    add_user_form = CustomUserCreationForm()
+
+    if request.method == 'POST':
+        add_user_form = CustomUserCreationForm(request.POST)
+        if add_user_form.is_valid():
+            add_user_form.save()
+            messages.success(request, 'User added successfully')
+            return redirect('user_management')
+        else:
+            messages.error(request, 'User add failed')
+            return redirect('user_management')
+    else:
+        add_user_form = CustomUserCreationForm()
+
+    context = {
+        'add_user_form': add_user_form,
+        'users': users
+    }
+    
+    return render(request, 'core/management/user_management.html', context)
+
+def user_details(request, user_id):
+    
+    manager = Manager.objects.get(user=request.user)
+    if not manager.is_updated:
+        messages.error(request, 'Please update your details first')
+        return redirect('manager_update')
+    
+    user = CustomUser.objects.get(id=user_id)
+    update_form = CustomUserUpdateForm(instance=user)
+
+    if request.method == 'POST':
+        update_form = CustomUserUpdateForm(request.POST, instance=user)
+        if update_form.is_valid():
+            update_form.save()
+            messages.success(request, 'User updated successfully')
+            return redirect('user_details', user_id=user.id)
+        
+        else:
+            messages.error(request, 'User update failed')
+            return redirect('user_details', user_id=user.id)
+    
+    else:
+        update_form = CustomUserUpdateForm(instance=user)
+
+    context = {
+        'user': user,
+        'form': update_form
+    }
+
+    return render(request, 'core/management/user_details.html', context)
+
+def delete_user(request, user_id):
+    manager = Manager.objects.get(user=request.user)
+
+    if not manager.is_updated:
+        messages.error(request, 'Please update your details first')
+        return redirect('manager_update')
+    
+    user = CustomUser.objects.get(id=user_id)
+
+    user.delete()
+    messages.success(request, 'User deleted successfully')
+
+    return redirect('user_management')
+
+def accounts(request):
+    manager = Manager.objects.get(user=request.user)
+    if not manager.is_updated:
+        messages.error(request, 'Please update your details first')
+        return redirect('manager_update')
+    
+    acccounts = SchoolAccount.objects.all()
+    add_form = SchoolAccountAddForm()
+
+    if request.method == 'POST':
+        add_form = SchoolAccountAddForm(request.POST)
+        if add_form.is_valid():
+            add_form.save()
+            messages.success(request, 'Account added successfully')
+            return redirect('manager_dashboard_accounts')
+        else:
+            messages.error(request, 'Account add failed')
+            return redirect('manager_dashboard_accounts')
+    else:
+        add_form = SchoolAccountAddForm()
+
+
+    context = {
+        'accounts': acccounts,
+        'form': add_form
+    }
+    
+    return render(request, 'core/management/accounts.html', context)
+
+def account_details(request, account_id):
+    manager = Manager.objects.get(user=request.user)
+    if not manager.is_updated:
+        messages.error(request, 'Please update your details first')
+        return redirect('manager_update')
+    
+    account = SchoolAccount.objects.get(id=account_id)
+    update_form = SchoolAccountUpdateForm(instance=account)
+
+    if request.method == 'POST':
+        update_form = SchoolAccountUpdateForm(request.POST, instance=account)
+        if update_form.is_valid():
+            update_form.save()
+            messages.success(request, 'Account updated successfully')
+            return redirect('account_details', account_id=account.id)
+        
+        else:
+            messages.error(request, 'Account update failed')
+            return redirect('account_details', account_id=account.id)
+    
+    else:
+        update_form = SchoolAccountUpdateForm(instance=account)
+
+    context = {
+        'account': account,
+        'form': update_form
+    }
+
+    return render(request, 'core/management/account_details.html', context)
+
+def delete_account(request, account_id):
+    manager = Manager.objects.get(user=request.user)
+
+    if not manager.is_updated:
+        messages.error(request, 'Please update your details first')
+        return redirect('manager_update')
+    
+    account = SchoolAccount.objects.get(id=account_id)
+    account.delete()
+    messages.success(request, 'Account deleted successfully')
+    return redirect('manager_dashboard_accounts')
+
+def trainers_management(request):
+    manager = Manager.objects.get(user=request.user)
+    if not manager.is_updated:
+        messages.error(request, 'Please update your details first')
+        return redirect('manager_update')
+    
+    trainers = Trainer.objects.all()
+    trainer_form = TrainerAddForm()
+
+    if request.method == 'POST':
+        trainer_form = TrainerAddForm(request.POST)
+        if trainer_form.is_valid():
+            trainer = Trainer.objects.create()
+            trainer_form.save()
+            messages.success(request, 'Trainer added successfully')
+            return redirect('manage_trainers')
+        else:
+            messages.error(request, 'Trainer add failed')
+            return redirect('manage_trainers')
+    else:
+        trainer_form = TrainerAddForm()
+    
+
+    context = {
+        'trainers': trainers,
+        'trainer_form': trainer_form
+    }
+
+
+
+    return render(request, 'core/management/trainers.html', context)
+
+# ============================= End of Manager Dashboard Area =============================
+
+# ============================= Payroll Management =============================
+
+def payroll(request):
+    manager = Manager.objects.get(user=request.user)
+
+    if not manager.is_updated:
+        messages.error(request, 'Please update your details first')
+        return redirect('manager_update')
+    
+    payroll = Payroll.objects.filter(trainer__on_payroll=True)
+    print(payroll)
+    return render(request, 'core/management/payroll.html')
+
+# ============================= End of Payroll Management =============================
+
 def trainer_dashboard(request):
+    trainer = Trainer.objects.get(user=request.user)
+    if not trainer.account_updated:
+        return redirect('update_trainer_details', pk=trainer.id)
+    
 
     return render(request, 'core/trainer_dashboard.html')
+
+
+def update_trainer_details(request, pk):
+    update_trainer_form = TrainerUpdateForm()
+    trainer = Trainer.objects.get(id=pk)
+    
+    if request.method == 'POST':
+        update_trainer_form = TrainerUpdateForm(request.POST,request.FILES, instance=trainer)
+        if update_trainer_form.is_valid():
+            update_trainer_form.save()
+            messages.success(request, 'Trainer details updated successfully')
+            return redirect('trainer_dashboard')
+        else:
+            messages.error(request, 'Trainer details update failed')
+            return redirect('update_trainer_details', pk=trainer.id)
+    else:
+        update_trainer_form = TrainerUpdateForm(instance=trainer)
+
+    context = {
+        'form': update_trainer_form
+    }
+
+    return render(request, 'core/trainer/update_trainer_details.html', context)
+
+def manager_settings(request):
+    return render(request, 'core/management/settings.html')
+
+def reports(request):
+    
+        return render(request, 'core/management/reports.html')
 
 def about(request):
 

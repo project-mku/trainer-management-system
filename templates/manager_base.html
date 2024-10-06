@@ -16,14 +16,15 @@
                 class="fixed w-64 min-h-screen px-4 py-8 text-white transition-transform duration-300 ease-in-out transform bg-gray-800 lg:relative lg:translate-x-0">
                 <h2 class="mb-6 text-2xl font-bold text-center">Manager Dashboard</h2>
                 <nav>
-                    <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700">Dashboard</a>
-                    <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700">Accounts</a>
-                    <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700">Payroll</a>
-                    <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700">Trainers</a>
-                    <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700">Students</a>
-                    <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700">Reports</a>
-                    <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700">Feedback</a>
-                    <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700">Settings</a>
+                    <a href="{% url 'manager_dashboard' %}" class="block px-4 py-2 rounded hover:bg-gray-700">Dashboard</a>
+                    <a href="{% url 'user_management' %}" class="block px-4 py-2 rounded hover:bg-gray-700">Users</a>
+                    <a href="{% url 'manager_dashboard_accounts' %}" class="block px-4 py-2 rounded hover:bg-gray-700">Accounts</a>
+                    <a href="{% url 'manager_dashboard_payroll' %}" class="block px-4 py-2 rounded hover:bg-gray-700">Payroll</a>
+                    <a href="{% url 'manage_trainers' %}" class="block px-4 py-2 rounded hover:bg-gray-700">Trainers</a> 
+                    <!-- <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700">Students</a> -->
+                    <a href="{% url 'reports' %}" class="block px-4 py-2 rounded hover:bg-gray-700">Reports</a>
+                    <!-- <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700">Feedback</a> -->
+                    <a href="{% url 'manager_settings' %}" class="block px-4 py-2 rounded hover:bg-gray-700">Settings</a>
                     <form action="{% url 'logout' %}" method="post">
                         {% csrf_token %}    
                         <button type="submit" class="block w-full px-4 py-2 mt-4 text-left rounded hover:bg-gray-700">Logout</button>
@@ -72,5 +73,6 @@
         {% endblock extra_body %}
 
         <script src="{% static 'js/alpinejs.min.js' %}"></script> 
+        <script src="{% static 'js/flowbite.min.js' %}"></script>
     </body>
 </html>

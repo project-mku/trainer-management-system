@@ -24,12 +24,21 @@ class CustomUserManager(BaseUserManager):
     
 class CustomUser(AbstractUser):
     '''Model definition for CustomUser.'''
+
+    class GenderChoices(models.TextChoices):
+        MALE = 'male', 'Male'
+        FEMALE = 'female', 'Female'
+        OTHER = 'other', 'Other'
+
+
     email = models.EmailField(unique=True)
+    gender = models.CharField(max_length=10, choices=GenderChoices, null=True, blank=True)
     is_trainer = models.BooleanField(default=False)
     is_manager = models.BooleanField(default=False)
+    is_temp_manager = models.BooleanField(default=False)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    # USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['email']
 
     objects = CustomUserManager()
 
@@ -39,7 +48,7 @@ class CustomUser(AbstractUser):
         verbose_name_plural = 'Users'
 
     def __str__(self):
-        return self.email  # Return the email for a better string representation
+        return self.email  
 
 class Trainer(models.Model):
     '''Model definition for Trainer.'''
@@ -56,12 +65,14 @@ class Trainer(models.Model):
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     bio = models.TextField(blank=True, null=True, help_text='A brief description about you as a trainer')
     profile_picture = models.ImageField(upload_to='trainer_pics/', blank=True, null=True)
-    specialties = models.CharField(max_length=200)  # E.g., Python, Data Science, etc. -----> Can be the department which the trainer is in
+    department = models.CharField(max_length=200, default="", null=True, blank=True)  # E.g., Python, Data Science, etc. -----> Can be the department which the trainer is in
+    account_updated = models.BooleanField(default=False)
     
     # Payroll related fields
-    salary_type = models.CharField(max_length=6, choices=SALARY_TYPE_CHOICES, default='fixed')
+    salary_type = models.CharField(max_length=6, choices=SALARY_TYPE_CHOICES, default='fixed', help_text="How would you like to be paid?")
     base_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)  # For fixed salary
     hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)  # For hourly payments
+    on_payroll = models.BooleanField(default=False)
 
     class Meta:
         '''Meta definition for Trainer.'''
@@ -72,7 +83,7 @@ class Trainer(models.Model):
         ]
     
     def __str__(self):
-        return f'{self.first_name} {self.last_name}'
+        return f'{self.user.username}'
 
 class Payroll(models.Model):
     """
@@ -81,6 +92,20 @@ class Payroll(models.Model):
     trainers, the model will track the number of hours worked per pay 
     period.
     """
+    class MonthChoices(models.TextChoices):
+        JANUARY = 'january', 'January'
+        FEBRUARY = 'february', 'February'
+        MARCH = 'march', 'March'
+        APRIL = 'april', 'April'
+        MAY = 'may', 'May'
+        JUNE = 'june', 'June'
+        JULY = 'july', 'July'
+        AUGUST = 'august', 'August'
+        SEPTEMBER = 'september', 'September'
+        OCTOBER = 'october', 'October'
+        NOVEMBER = 'november', 'November'
+        DECEMBER = 'december', 'December'
+
     PAYROLL_STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('paid', 'Paid'),
@@ -88,6 +113,7 @@ class Payroll(models.Model):
     ]
     
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
+    month = models.CharField(max_length=10, help_text="Month of the payroll", choices=MonthChoices.choices, null=True, blank=True)
     pay_period_start = models.DateField()
     pay_period_end = models.DateField()
     hours_worked = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # For hourly rate trainers
@@ -291,10 +317,20 @@ class Manager(models.Model):
 
     '''Model definition for Manager.'''
 
+    class Rankchoices(models.TextChoices):
+        Manager = 'manager', 'Manager'
+        Assistant_Manager = 'assistant_manager', 'Assistant Manager'
+        Supervisor = 'supervisor', 'Supervisor'
+        Director = 'director', 'Director'
+
+
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    id_number = models.CharField(max_length=10)
-    phone_number = models.CharField(max_length=10)
-    address = models.CharField(max_length=100)
+    id_number = models.CharField(max_length=10, null=True, blank=True)
+    phone_number = models.CharField(max_length=10, null=True, blank=True)
+    address = models.CharField(max_length=100, null=True, blank=True)
+    role = models.CharField(max_length=100, choices=Rankchoices.choices, default='manager')
+    bio = models.TextField(null=True, blank=True)
+    is_updated = models.BooleanField(default=False)
 
     class Meta:
         '''Meta definition for Manager.'''
@@ -306,7 +342,23 @@ class Manager(models.Model):
         ]
 
     def __str__(self):
-        pass
+        return self.user.username
+
+class ManagerAuthenticationCodes(models.Model):
+    '''Model definition for ManagerAuthenticationCodes.'''
+
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        '''Meta definition for ManagerAuthenticationCodes.'''
+
+        verbose_name = 'Manager AuthenticationCode'
+        verbose_name_plural = 'Manager Authentication Codes'
+
+    def __str__(self):
+        return self.code
 
 class Payslip(models.Model):
     """
