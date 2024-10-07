@@ -1,10 +1,13 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth import authenticate, login
+from  django.contrib.auth.decorators import login_required
 
 from core.models import ManagerAuthenticationCodes, SchoolAccount, Payroll, Manager, Trainer, CustomUser
 from .forms import CustomUserCreationForm, CustomUserUpdateForm, ManageUpdateForm, SchoolAccountUpdateForm, SchoolAccountAddForm, TrainerUpdateForm, TrainerAddForm
 from django.contrib import messages
 
+
+# helper function to get the correct dashboard URL based on the user's role
 def get_dashboard_url(user):
     """Return the correct dashboard URL based on the user's role."""
     if user.is_trainer:
@@ -68,6 +71,7 @@ def register(request):
         
     return render(request, 'registration/register.html', context)
 
+@login_required
 def set_account_role(request):
     
     if request.method == 'POST':
@@ -98,6 +102,7 @@ def set_account_role(request):
 
     return render(request, 'registration/set_account_role.html')
 
+@login_required
 def authenticate_manager(request):
     system_codes = list(ManagerAuthenticationCodes.objects.values_list('code', flat=True))
     print(system_codes)
@@ -127,6 +132,7 @@ def index(request):
 
 
 # ============================= Manager Dashboard Area =============================
+@login_required
 def manager_dashboard(request):
 
     manager = Manager.objects.get(user=request.user)
@@ -136,6 +142,7 @@ def manager_dashboard(request):
     
     return render(request, 'core/manager_dashboard.html')
 
+@login_required
 def manager_update(request):
     update_form = ManageUpdateForm()
     manager = Manager.objects.get(user=request.user)
@@ -160,6 +167,7 @@ def manager_update(request):
 
     return render(request, 'core/management/manager_update.html', context)
 
+@login_required
 def user_management(request):
     manager = Manager.objects.get(user=request.user)
 
@@ -188,6 +196,7 @@ def user_management(request):
     
     return render(request, 'core/management/user_management.html', context)
 
+@login_required
 def user_details(request, user_id):
     
     manager = Manager.objects.get(user=request.user)
@@ -219,6 +228,7 @@ def user_details(request, user_id):
 
     return render(request, 'core/management/user_details.html', context)
 
+@login_required
 def delete_user(request, user_id):
     manager = Manager.objects.get(user=request.user)
 
@@ -233,6 +243,7 @@ def delete_user(request, user_id):
 
     return redirect('user_management')
 
+@login_required
 def accounts(request):
     manager = Manager.objects.get(user=request.user)
     if not manager.is_updated:
@@ -262,6 +273,7 @@ def accounts(request):
     
     return render(request, 'core/management/accounts.html', context)
 
+@login_required
 def account_details(request, account_id):
     manager = Manager.objects.get(user=request.user)
     if not manager.is_updated:
@@ -292,6 +304,7 @@ def account_details(request, account_id):
 
     return render(request, 'core/management/account_details.html', context)
 
+@login_required
 def delete_account(request, account_id):
     manager = Manager.objects.get(user=request.user)
 
@@ -304,6 +317,7 @@ def delete_account(request, account_id):
     messages.success(request, 'Account deleted successfully')
     return redirect('manager_dashboard_accounts')
 
+@login_required
 def trainers_management(request):
     manager = Manager.objects.get(user=request.user)
     if not manager.is_updated:
@@ -339,7 +353,7 @@ def trainers_management(request):
 # ============================= End of Manager Dashboard Area =============================
 
 # ============================= Payroll Management =============================
-
+@login_required
 def payroll(request):
     manager = Manager.objects.get(user=request.user)
 
@@ -347,12 +361,17 @@ def payroll(request):
         messages.error(request, 'Please update your details first')
         return redirect('manager_update')
     
-    payroll = Payroll.objects.filter(trainer__on_payroll=True)
-    print(payroll)
-    return render(request, 'core/management/payroll.html')
+    payrolls = Payroll.objects.filter(trainer__on_payroll=True)
+
+    print(payrolls)
+    context = {
+        'payrolls': payrolls
+    }
+
+    return render(request, 'core/management/payroll.html', context)
 
 # ============================= End of Payroll Management =============================
-
+@login_required
 def trainer_dashboard(request):
     trainer = Trainer.objects.get(user=request.user)
     if not trainer.account_updated:
@@ -361,7 +380,7 @@ def trainer_dashboard(request):
 
     return render(request, 'core/trainer_dashboard.html')
 
-
+@login_required
 def update_trainer_details(request, pk):
     update_trainer_form = TrainerUpdateForm()
     trainer = Trainer.objects.get(id=pk)
@@ -384,17 +403,21 @@ def update_trainer_details(request, pk):
 
     return render(request, 'core/trainer/update_trainer_details.html', context)
 
+@login_required
 def manager_settings(request):
     return render(request, 'core/management/settings.html')
 
+@login_required
 def reports(request):
     
         return render(request, 'core/management/reports.html')
 
+@login_required
 def about(request):
 
     return render(request, 'core/about.html')
 
+@login_required
 def contact_us(request):
     
     return render(request, 'core/contact_us.html')
