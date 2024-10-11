@@ -2,8 +2,8 @@ from django.shortcuts import redirect, render
 from django.contrib.auth import authenticate, login
 from  django.contrib.auth.decorators import login_required
 
-from core.models import ManagerAuthenticationCodes, SchoolAccount, Payroll, Manager, Trainer, CustomUser
-from .forms import CustomUserCreationForm, CustomUserUpdateForm, ManageUpdateForm, SchoolAccountUpdateForm, SchoolAccountAddForm, TrainerUpdateForm, TrainerAddForm
+from core.models import ManagerAuthenticationCodes, SchoolAccount, Payroll, Manager, Trainer, CustomUser, TrainerSkills
+from .forms import CustomUserCreationForm, CustomUserUpdateForm, ManageUpdateForm, SchoolAccountUpdateForm, SchoolAccountAddForm, TrainerUpdateAdminForm, TrainerUpdateForm, TrainerAddForm, AddPayRoll, AddTrainerSkillsForm
 from django.contrib import messages
 
 
@@ -73,6 +73,13 @@ def register(request):
 
 @login_required
 def set_account_role(request):
+
+    user = request.user
+
+    if user.is_trainer:
+        return redirect('trainer_dashboard')
+    elif user.is_manager:
+        return redirect('manager_dashboard')
     
     if request.method == 'POST':
         role = request.POST.get('role')
@@ -330,7 +337,6 @@ def trainers_management(request):
     if request.method == 'POST':
         trainer_form = TrainerAddForm(request.POST)
         if trainer_form.is_valid():
-            trainer = Trainer.objects.create()
             trainer_form.save()
             messages.success(request, 'Trainer added successfully')
             return redirect('manage_trainers')
@@ -350,6 +356,37 @@ def trainers_management(request):
 
     return render(request, 'core/management/trainers.html', context)
 
+def trainer_details(request, trainer_id):
+    trainer = Trainer.objects.get(id=trainer_id)
+
+    trainer_form = TrainerUpdateAdminForm(instance=trainer)
+    
+    if request.method == 'POST':
+        trainer_form = TrainerUpdateAdminForm(request.POST, instance=trainer)
+        if trainer_form.is_valid():
+            trainer_form.save()
+            messages.success(request, 'Trainer details updated successfully')
+            return redirect('trainer_details', trainer_id=trainer.id)
+        else:
+            messages.error(request, 'Trainer details update failed')
+            return redirect('trainer_details', trainer_id=trainer.id)
+    else:
+        trainer_form = TrainerUpdateAdminForm(instance=trainer)
+
+    context = {
+        'trainer': trainer,
+        'form': trainer_form
+    }
+
+    return render(request, 'core/management/trainer_details.html', context)
+
+def delete_trainer(request, trainer_id):
+    trainer = Trainer.objects.get(id=trainer_id)
+    trainer.delete()
+    messages.success(request, 'Trainer deleted successfully')
+    return redirect('manage_trainers')
+
+
 # ============================= End of Manager Dashboard Area =============================
 
 # ============================= Payroll Management =============================
@@ -363,9 +400,24 @@ def payroll(request):
     
     payrolls = Payroll.objects.filter(trainer__on_payroll=True)
 
-    print(payrolls)
+    add_payroll_form = AddPayRoll()
+    
+    if request.method == 'POST':
+        add_payroll_form = AddPayRoll(request.POST)
+        if add_payroll_form.is_valid():
+            add_payroll_form.save()
+            messages.success(request, 'Payroll added successfully')
+            return redirect('manager_dashboard_payroll')
+        else:
+            messages.error(request, 'Payroll add failed')
+            return redirect('manager_dashboard_payroll')
+    else:
+        add_payroll_form = AddPayRoll()
+        
+
     context = {
-        'payrolls': payrolls
+        'payrolls': payrolls,
+        'form': add_payroll_form
     }
 
     return render(request, 'core/management/payroll.html', context)
@@ -374,11 +426,15 @@ def payroll(request):
 @login_required
 def trainer_dashboard(request):
     trainer = Trainer.objects.get(user=request.user)
+
     if not trainer.account_updated:
         return redirect('update_trainer_details', pk=trainer.id)
     
+    context = {
+        'trainer': trainer
+    }
 
-    return render(request, 'core/trainer_dashboard.html')
+    return render(request, 'core/trainer_dashboard.html', context)
 
 @login_required
 def update_trainer_details(request, pk):
@@ -388,6 +444,8 @@ def update_trainer_details(request, pk):
     if request.method == 'POST':
         update_trainer_form = TrainerUpdateForm(request.POST,request.FILES, instance=trainer)
         if update_trainer_form.is_valid():
+            trainer.account_updated = True
+            trainer.save()
             update_trainer_form.save()
             messages.success(request, 'Trainer details updated successfully')
             return redirect('trainer_dashboard')
@@ -402,6 +460,33 @@ def update_trainer_details(request, pk):
     }
 
     return render(request, 'core/trainer/update_trainer_details.html', context)
+
+def set_trainer_skills(request, pk):
+    trainer = Trainer.objects.get(pk=pk)
+
+    set_skills_form = AddTrainerSkillsForm()
+
+    if request.method == 'POST':
+        skill = request.POST.get('skill')
+        print(skill)
+        if skill:
+            trainer_skill = TrainerSkills.objects.create(trainer=trainer, skill=skill)
+            trainer_skill.save()
+            trainer.skills.add(trainer_skill.pk)
+            trainer.save()
+        messages.success(request, 'Skills updated successfully')
+           
+        
+    else:
+        set_skills_form = AddTrainerSkillsForm()
+
+    context = {
+        'form': set_skills_form,
+        'trainer': trainer
+    }
+
+
+    return render(request, 'core/trainer/set_skills.html', context)
 
 @login_required
 def manager_settings(request):

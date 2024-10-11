@@ -20,7 +20,7 @@
                     <a href="{% url 'user_management' %}" class="block px-4 py-2 rounded hover:bg-gray-700">Users</a>
                     <a href="{% url 'manager_dashboard_accounts' %}" class="block px-4 py-2 rounded hover:bg-gray-700">Accounts</a>
                     <a href="{% url 'manager_dashboard_payroll' %}" class="block px-4 py-2 rounded hover:bg-gray-700">Payroll</a>
-                    <a href="{% url 'manage_trainers' %}" class="block px-4 py-2 rounded hover:bg-gray-700">Trainers</a> 
+                    <a href="{% url 'trainers_management' %}" class="block px-4 py-2 rounded hover:bg-gray-700">Trainers</a> 
                     <!-- <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700">Students</a> -->
                     <a href="{% url 'reports' %}" class="block px-4 py-2 rounded hover:bg-gray-700">Reports</a>
                     <!-- <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700">Feedback</a> -->
@@ -74,5 +74,6 @@
 
         <script src="{% static 'js/alpinejs.min.js' %}"></script> 
         <script src="{% static 'js/flowbite.min.js' %}"></script>
+        <script src="{% static 'js/htmx.min.js' %}"></script>
     </body>
 </html>

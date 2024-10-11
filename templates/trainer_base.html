@@ -17,8 +17,8 @@
             <h2 class="mb-6 text-2xl font-bold text-center">Trainer Dashboard</h2>
             <nav>
                 <a href="#" class="block px-4 py-2 rounded hover:bg-blue-700">Dashboard</a>
-                <a href="#" class="block px-4 py-2 rounded hover:bg-blue-700">Students</a>
-                <a href="#" class="block px-4 py-2 rounded hover:bg-blue-700">Courses</a>
+                <a href="{% url 'set_skill' trainer.id %}" class="block px-4 py-2 rounded hover:bg-blue-700">Skills</a>
+                <!-- <a href="#" class="block px-4 py-2 rounded hover:bg-blue-700">Courses</a> -->
                 <a href="#" class="block px-4 py-2 rounded hover:bg-blue-700">Assignments</a>
                 <a href="#" class="block px-4 py-2 rounded hover:bg-blue-700">Schedules</a>
                 <a href="#" class="block px-4 py-2 rounded hover:bg-blue-700">Grades</a>
@@ -70,6 +70,8 @@
     {% block extra_body %}
     {% endblock extra_body %}
 
-    <script src="{% static 'js/alpinejs.min.js' %}"></script>
+    <script src="{% static 'js/alpinejs.min.js' %}"></script>\
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+
 </body>
 </html>

@@ -19,7 +19,9 @@ urlpatterns = [
     path('manager_dashboard/accounts/update/', views.manager_update, name='manager_update'), 
     path('manager_dashboard/accounts/<int:account_id>', views.account_details, name='account_details'),
     path('manager_dashboard/accounts/<int:account_id>/delete/', views.delete_account, name='delete_account'),
-    path('manager_dashboard/trainers_management/', views.trainers_management, name='manage_trainers'),
+    path('manager_dashboard/trainers_management/', views.trainers_management, name='trainers_management'),
+    path('manager_dashboard/trainers_management/<int:trainer_id>/', views.trainer_details, name='trainer_details'),
+    path('manager_dashboard/trainers_management/<int:trainer_id>/delete/', views.delete_trainer, name='delete_trainer'),
 
     path('manager_dashboard/settings/', views.manager_settings, name='manager_settings'),
 
@@ -27,8 +29,10 @@ urlpatterns = [
     path('manager_dashboard/payments', views.payroll, name='manager_dashboard_payroll'),
 
     # Trainer views
-    path('trainer_dashboard/', views.trainers_management, name='trainers_management'),
+    path('trainer_dashboard/', views.trainer_dashboard, name='trainer_dashboard'),
     path('trainer_dashboard/update_details/<int:pk>/', views.update_trainer_details, name='update_trainer_details'),
+    path('trainer_dashboard/set_skill/<int:pk>/', views.set_trainer_skills, name='set_skill'),
+
     
 
 

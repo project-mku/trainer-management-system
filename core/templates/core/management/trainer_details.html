@@ -1,0 +1,176 @@
+{% extends 'manager_base.html' %}
+
+{% block title %} Trainer Details - {{ trainer.name }} {% endblock title %}
+
+{% block header %}
+    Trainer Details - {{ trainer.first_name }}
+{% endblock header %}
+
+{% block content %}
+<div class="mx-auto mt-8 bg-white rounded-lg shadow-lg">
+    <div class="messages">
+        {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'info' %}
+                <div class="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50" role="alert">
+                <span class="font-medium">Warning!</span> {{ message }}
+                </div>
+            {% elif message.tags == 'success' %}
+                <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                <span class="font-medium">Success!</span> {{ message }}
+                </div>
+            {% elif message.tags == 'error' %}
+                <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+                <span class="font-medium">Error!</span> {{ message }}
+                </div>  
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    </div>
+    <div class="px-6 py-8">
+        <!-- Trainer Information -->
+        <h2 class="mb-6 text-2xl font-semibold text-gray-800">{{ trainer.first_name }} {{ trainer.last_name }}</h2>
+
+        <!-- Trainer Profile Details -->
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div class="mb-3">
+                <p class="mb-3 font-medium text-gray-700">Email:</p>
+                <p class="text-gray-600">{{ trainer.email }}</p>
+            </div>
+            <div class="mb-3">
+                <p class="mb-3 font-medium text-gray-700">Phone:</p>
+                <p class="text-gray-600">{{ trainer.phone_number }}</p>
+            </div>
+            <div class="mb-3">
+                <p class="mb-3 font-medium text-gray-700">Specialization:</p>
+                <p class="text-gray-600">{{ trainer.department }}</p>
+            </div>
+            <div class="mb-3">
+                <p class="mb-3 font-medium text-gray-700">Years of Experience:</p>
+                <p class="text-gray-600">{{ trainer.years_of_experience }}</p>
+            </div>
+        </div>
+
+        <!-- Trainer Skills -->
+        <h3 class="mt-8 mb-4 text-xl font-semibold text-gray-800">Skills</h3>
+        <div class="flex flex-wrap gap-2">
+            {% for skill in trainer.skills.all %}
+                <span class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded">{{ skill.name }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div class="payroll">
+                <h3 class="mt-8 mb-4 text-xl font-semibold text-gray-800">Payroll</h3>
+                <div class="flex flex-wrap gap-2">
+                    <p>Payroll Status: </p>
+                    {% if trainer.on_payroll %}
+                    <span class="bg-blue-100 text-blue-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">Registered to payroll</span>
+                    {% else %}
+                        <span class="bg-red-100 text-red-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">Not registered to payroll</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="sal">
+                <h3 class="mt-8 mb-4 text-xl font-semibold text-gray-800">Salary</h3>
+                <div class="flex flex-wrap gap-2">
+                    
+                    <span class="font-medium me-2 px-2.5 py-1.5 rounded bg-green-900 text-green-300">
+                        Ksh. {{ trainer.base_salary|floatformat:2 }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trainer Status -->
+        <h3 class="mt-8 mb-4 text-xl font-semibold text-gray-800">Trainer Status</h3>
+        <div class="flex items-center space-x-4">
+            {% if trainer.trainer_status == 'active' %}       
+                <span class="bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+                    {{ trainer.trainer_status }}
+                </span>
+            {% elif trainer.trainer_status == 'inactive' %}
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">
+                    {{ trainer.trainer_status }}
+                </span>
+            {% else %}
+                <span class="bg-red-100 text-red-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">
+                    unknown status
+                </span>
+            {% endif %}
+            <span>Last Updated: {{ trainer.updated_at|date:"Y-m-d H:i" }}</span>
+            
+            <span></span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end mt-8 space-x-4">
+            <!-- Edit Trainer Button -->
+            <!-- Modal Update toggle -->
+            <button data-modal-target="static-modal" data-modal-toggle="static-modal" class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center" type="button">
+                Update Trainer
+            </button>
+
+            <!-- Delete Trainer Button with Alpine.js Modal -->
+            <div x-data="{ open: false }">
+                <button @click="open = true" class="px-5 py-2.5 text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none">
+                    Delete Trainer
+                </button>
+
+                <!-- Delete Confirmation Modal -->
+                <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" @click.away="open = false">
+                    <div class="p-6 bg-white rounded-lg shadow-lg w-96">
+                        <h2 class="mb-4 text-xl font-bold">Delete Trainer</h2>
+                        <p>Are you sure you want to delete {{ trainer.name }}? This action cannot be undone.</p>
+                        <div class="flex justify-end mt-6">
+                            <button @click="open = false" class="px-4 py-2 mr-2 font-bold text-gray-700 bg-gray-300 rounded">Cancel</button>
+                            <form action="{% url 'delete_trainer' trainer.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="px-4 py-2 font-bold text-white bg-red-600 rounded">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <!-- Edit modal -->
+        <div id="static-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="fixed inset-0 z-50 items-center justify-center hidden w-full h-full">
+            <!-- Backdrop -->
+            <div class="fixed inset-0 bg-black opacity-70"></div>
+
+            <div class="relative w-full max-w-2xl p-4 h-[70%] overflow-y-auto">
+                <!-- Modal content -->
+                <div class="relative bg-white rounded-lg shadow">
+                    <!-- Modal header -->
+                    <div class="flex items-center justify-between p-4 border-b rounded-t md:p-5">
+                        <h3 class="text-xl font-semibold text-gray-900">
+                            Update {{ trainer.first_name }} Details
+                        </h3>
+                        <button type="button" class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto" data-modal-hide="static-modal">
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                            </svg>
+                            <span class="sr-only">Close modal</span>
+                        </button>
+                    </div>
+                    <!-- Modal body -->
+                    <div class="p-4 space-y-4 md:p-5">
+                        <form method="post" class="h-[50%] overflow-y-auto">
+                            {% csrf_token %}
+                            {{form}}
+                            <div class="flex items-center p-4 border-t border-gray-200 rounded-b md:p-5">
+                                <button data-modal-hide="static-modal" type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Update</button>
+                                    
+                                <button data-modal-hide="static-modal" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

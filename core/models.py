@@ -50,11 +50,29 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.email  
 
+class TrainerSkills(models.Model):
+    '''Model definition for TrainerSkills.'''
+    trainer = models.ForeignKey('Trainer', on_delete=models.CASCADE)
+    skill = models.CharField(max_length=100)
+
+    class Meta:
+        '''Meta definition for TrainerSkills.'''
+        verbose_name = 'Trainer Skill'
+        verbose_name_plural = 'Trainer Skills'
+
+    def __str__(self):
+        return f'{self.skill} - {self.trainer}'
+
 class Trainer(models.Model):
     '''Model definition for Trainer.'''
     SALARY_TYPE_CHOICES = [
         ('fixed', 'Fixed Salary'),
         ('hourly', 'Hourly Rate'),
+    ]
+
+    STATUSCHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive')
     ]
     
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
@@ -64,7 +82,10 @@ class Trainer(models.Model):
     id_number = models.CharField(max_length=10, blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     bio = models.TextField(blank=True, null=True, help_text='A brief description about you as a trainer')
+    skills = models.ManyToManyField(TrainerSkills, blank=True, related_name='trainer_skills')
+    years_of_experience = models.IntegerField(default=0, blank=True, null=True)
     profile_picture = models.ImageField(upload_to='trainer_pics/', blank=True, null=True)
+    trainer_status = models.CharField(max_length=10, choices=STATUSCHOICES, default='active')
     department = models.CharField(max_length=200, default="", null=True, blank=True)  # E.g., Python, Data Science, etc. -----> Can be the department which the trainer is in
     account_updated = models.BooleanField(default=False)
     
@@ -73,6 +94,8 @@ class Trainer(models.Model):
     base_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)  # For fixed salary
     hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)  # For hourly payments
     on_payroll = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         '''Meta definition for Trainer.'''
@@ -276,42 +299,43 @@ class Feedback(models.Model):
     def __str__(self):
         return f'Feedback for {self.course.title} by {self.student}'
 
-class Payment(models.Model):
-    """
-    Manage payments for courses.
-    """
+# class Payment(models.Model):
+#     """
+#     Manage payments for Trainers.
+#     """
 
-    class PaymentStatus(models.TextChoices):
-        PENDING = 'pending', 'Pending'
-        PAID = 'paid', 'Paid'
-        CANCELLED = 'cancelled', 'Cancelled'
+#     class PaymentStatus(models.TextChoices):
+#         PENDING = 'pending', 'Pending'
+#         PAID = 'paid', 'Paid'
+#         CANCELLED = 'cancelled', 'Cancelled'
 
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_date = models.DateField(auto_now_add=True)
-    payment_status = models.CharField(default=PaymentStatus.PENDING, max_length=10, choices=PaymentStatus.choices)
+#     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
+#     amount = models.DecimalField(max_digits=10, decimal_places=2)
+#     pay_period_start = models.DateField()
+#     pay_period_end = models.DateField()
+#     payment_date = models.DateField(auto_now_add=True)
+#     payment_status = models.CharField(default=PaymentStatus.PENDING, max_length=10, choices=PaymentStatus.choices)
     
-    class Meta:
-        verbose_name = 'Payment'
-        verbose_name_plural = 'Payments'
+#     class Meta:
+#         verbose_name = 'Payment'
+#         verbose_name_plural = 'Payments'
 
-    def __str__(self):
-        return f'Payment of {self.amount} by {self.student} for {self.course.title}'
+#     def __str__(self):
+#         return f'Payment of {self.amount} by {self.student} for {self.course.title}'
 
-    def process_payment(self):
-        """
-        Process student payment and add funds to the school account.
-        """
-        if not self.payment_status:
-            # Add funds to the school account
-            school_account = SchoolAccount.objects.first()  # Assuming one school account
-            if school_account:
-                school_account.add_funds(self.amount)
-                self.payment_status = True
-                self.save()
-            else:
-                raise ValueError("School account not found.")
+#     def process_payment(self):
+#         """
+#         Process student payment and add funds to the school account.
+#         """
+#         if not self.payment_status:
+#             # Add funds to the school account
+#             school_account = SchoolAccount.objects.first()  # Assuming one school account
+#             if school_account:
+#                 school_account.add_funds(self.amount)
+#                 self.payment_status = True
+#                 self.save()
+#             else:
+#                 raise ValueError("School account not found.")
 
 class Manager(models.Model):
 
