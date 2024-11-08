@@ -27,6 +27,7 @@ urlpatterns = [
 
     # Payment views
     path('manager_dashboard/payments', views.payroll, name='manager_dashboard_payroll'),
+    path('manager_dashboard/payments/<int:payment_id>/', views.payment_details, name='payment_details'),
 
     # Trainer views
     path('trainer_dashboard/', views.trainer_dashboard, name='trainer_dashboard'),

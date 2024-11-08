@@ -278,3 +278,37 @@ class PayTrainerForm(forms.Form):
         choices=Trainer.objects.all()
     )
 
+class UpdatePayrollForm(forms.ModelForm):
+    class Meta:
+        model = Payroll
+        fields = [
+            'trainer', 
+            'month', 
+            'pay_period_start', 
+            'pay_period_end', 
+            'hours_worked', 
+            'total_payment', 
+            'status',
+            'payment_date',
+            
+        ]
+        widgets = {
+            'trainer': forms.Select(attrs={'class': 'mt-1 mb-4 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500'}), 
+
+            'month': forms.Select(attrs={'class': 'mt-1 mb-4 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500'}),
+
+            'pay_period_start': forms.DateInput(attrs={'class': 'mt-1 mb-4 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500'}),
+
+            'pay_period_end': forms.DateInput(attrs={'class': 'mt-1 mb-4 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500'}),
+
+            'hours_worked': forms.NumberInput(attrs={'class': 'mt-1 mb-4 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500'}),
+
+            'total_payment': forms.NumberInput(attrs={'class': 'mt-1 mb-4 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500'}),
+
+            'status': forms.Select(attrs={'class': 'mt-1 mb-4 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500'}),
+
+            'payment_date': forms.DateInput(attrs={'class': 'mt-1 mb-4 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500'}),
+
+        }
+
+

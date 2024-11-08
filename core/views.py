@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login
 from  django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from core.models import ManagerAuthenticationCodes, SchoolAccount, Payroll, Manager, Trainer, CustomUser, TrainerSkills
-from .forms import CustomUserCreationForm, CustomUserUpdateForm, ManageUpdateForm, SchoolAccountUpdateForm, SchoolAccountAddForm, TrainerUpdateAdminForm, TrainerUpdateForm, TrainerAddForm, PayTrainerForm, AddTrainerSkillsForm, AddPayRoll
+from .forms import CustomUserCreationForm, CustomUserUpdateForm, ManageUpdateForm, SchoolAccountUpdateForm, SchoolAccountAddForm, TrainerUpdateAdminForm, TrainerUpdateForm, TrainerAddForm, PayTrainerForm, AddTrainerSkillsForm, AddPayRoll, UpdatePayrollForm
 from django.contrib import messages
 
 
@@ -403,17 +403,17 @@ def payroll(request):
 
     add_payroll_form = AddPayRoll()
     
-    # if request.method == 'POST':
-    #     add_payroll_form = AddPayRoll(request.POST)
-    #     if add_payroll_form.is_valid():
-    #         add_payroll_form.save()
-    #         messages.success(request, 'Payroll added successfully')
-    #         return redirect('manager_dashboard_payroll')
-    #     else:
-    #         messages.error(request, 'Payroll add failed')
-    #         return redirect('manager_dashboard_payroll')
-    # else:
-    #     add_payroll_form = AddPayRoll()
+    if request.method == 'POST':
+        add_payroll_form = AddPayRoll(request.POST)
+        if add_payroll_form.is_valid():
+            add_payroll_form.save()
+            messages.success(request, 'Payroll added successfully')
+            return redirect('manager_dashboard_payroll')
+        else:
+            messages.error(request, 'Payroll add failed')
+            return redirect('manager_dashboard_payroll')
+    else:
+        add_payroll_form = AddPayRoll()
         
 
     context = {
@@ -422,6 +422,32 @@ def payroll(request):
     }
 
     return render(request, 'core/management/payroll.html', context)
+
+
+def payment_details(request, payment_id):
+    payroll = Payroll.objects.get(id=payment_id)
+
+    form = UpdatePayrollForm(instance=payroll)
+
+    if request.method == 'POST':
+        form = UpdatePayrollForm(request.POST, instance=payroll)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Payroll updated successfully')
+            return redirect('payment_details', payment_id=payroll.id)
+        else:
+            messages.error(request, 'Payroll update failed')
+            return redirect('payment_details', payment_id=payroll.id)
+    else:
+        form = UpdatePayrollForm(instance=payroll)
+
+    contecxt = {
+        'payroll': payroll,
+        'form': form
+    }
+
+
+    return render(request, 'core/management/payroll_details.html', contecxt)
 
 # ============================= End of Payroll Management =============================
 @login_required

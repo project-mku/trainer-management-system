@@ -121,18 +121,18 @@
                                             <span class="inline-flex px-2 text-xs font-semibold leading-5 text-yellow-800 bg-yellow-100 rounded-full">
                                                 Pending
                                             </span>
-                                        {% elif payroll.status == 'approved' %}
+                                        {% elif payroll.status == 'paid' %}
                                             <span class="inline-flex px-2 text-xs font-semibold leading-5 text-green-800 bg-green-100 rounded-full">
                                                 Approved
                                             </span>
-                                        {% elif payroll.status == 'rejected' %}
+                                        {% elif payroll.status == 'cancelled' %}
                                             <span class="inline-flex px-2 text-xs font-semibold leading-5 text-red-800 bg-red-100 rounded-full">
                                                 Rejected
                                             </span>
                                         {% endif %}
                                     </td>
                                     <td class="px-6 py-4 text-right">
-                                        <a href="#" class="font-medium text-blue-600">Edit</a>
+                                        <a href="{% url 'payment_details' payroll.id %}" class="font-medium text-blue-600">View</a>
                                     </td>
                                 </tr>
                             {% endfor %}
