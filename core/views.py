@@ -1,15 +1,16 @@
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login
 from  django.contrib.auth.decorators import login_required
-
+from django.views.decorators.csrf import csrf_exempt
 from core.models import ManagerAuthenticationCodes, SchoolAccount, Payroll, Manager, Trainer, CustomUser, TrainerSkills
-from .forms import CustomUserCreationForm, CustomUserUpdateForm, ManageUpdateForm, SchoolAccountUpdateForm, SchoolAccountAddForm, TrainerUpdateAdminForm, TrainerUpdateForm, TrainerAddForm, AddPayRoll, AddTrainerSkillsForm
+from .forms import CustomUserCreationForm, CustomUserUpdateForm, ManageUpdateForm, SchoolAccountUpdateForm, SchoolAccountAddForm, TrainerUpdateAdminForm, TrainerUpdateForm, TrainerAddForm, PayTrainerForm, AddTrainerSkillsForm, AddPayRoll
 from django.contrib import messages
 
 
 # helper function to get the correct dashboard URL based on the user's role
 def get_dashboard_url(user):
     """Return the correct dashboard URL based on the user's role."""
+
     if user.is_trainer:
         return 'trainer_dashboard'
     elif user.is_manager:
@@ -18,8 +19,8 @@ def get_dashboard_url(user):
         return 'set_account_role'
 
 def account_login(request):
-    # if request.user.is_authenticated:
-    #     return redirect(get_dashboard_url(request.user))
+    if request.user.is_authenticated:
+        return redirect(get_dashboard_url(request.user))
     
     if request.method == 'POST':
         username_or_email = request.POST.get('username_or_email', '')
@@ -402,17 +403,17 @@ def payroll(request):
 
     add_payroll_form = AddPayRoll()
     
-    if request.method == 'POST':
-        add_payroll_form = AddPayRoll(request.POST)
-        if add_payroll_form.is_valid():
-            add_payroll_form.save()
-            messages.success(request, 'Payroll added successfully')
-            return redirect('manager_dashboard_payroll')
-        else:
-            messages.error(request, 'Payroll add failed')
-            return redirect('manager_dashboard_payroll')
-    else:
-        add_payroll_form = AddPayRoll()
+    # if request.method == 'POST':
+    #     add_payroll_form = AddPayRoll(request.POST)
+    #     if add_payroll_form.is_valid():
+    #         add_payroll_form.save()
+    #         messages.success(request, 'Payroll added successfully')
+    #         return redirect('manager_dashboard_payroll')
+    #     else:
+    #         messages.error(request, 'Payroll add failed')
+    #         return redirect('manager_dashboard_payroll')
+    # else:
+    #     add_payroll_form = AddPayRoll()
         
 
     context = {
@@ -425,7 +426,11 @@ def payroll(request):
 # ============================= End of Payroll Management =============================
 @login_required
 def trainer_dashboard(request):
-    trainer = Trainer.objects.get(user=request.user)
+    try:
+        trainer = Trainer.objects.get(user=request.user)
+    except Trainer.DoesNotExist:
+        messages.error(request, 'You are not a trainer, please contact the system admin')
+        return redirect('account_login')
 
     if not trainer.account_updated:
         return redirect('update_trainer_details', pk=trainer.id)
@@ -438,8 +443,15 @@ def trainer_dashboard(request):
 
 @login_required
 def update_trainer_details(request, pk):
+
+    try:
+        trainer = Trainer.objects.get(pk=pk)
+    except Trainer.DoesNotExist:
+        messages.error(request, 'Trainer not found')
+        return redirect('trainer_dashboard')
+
     update_trainer_form = TrainerUpdateForm()
-    trainer = Trainer.objects.get(id=pk)
+    
     
     if request.method == 'POST':
         update_trainer_form = TrainerUpdateForm(request.POST,request.FILES, instance=trainer)
@@ -456,37 +468,83 @@ def update_trainer_details(request, pk):
         update_trainer_form = TrainerUpdateForm(instance=trainer)
 
     context = {
-        'form': update_trainer_form
+        'form': update_trainer_form,
+        'trainer': trainer,
     }
 
     return render(request, 'core/trainer/update_trainer_details.html', context)
 
 def set_trainer_skills(request, pk):
-    trainer = Trainer.objects.get(pk=pk)
+    try :
+        trainer = Trainer.objects.get(pk=pk)
+        
+    except Trainer.DoesNotExist:
+        messages.error(request, 'Trainer not found')
+        return redirect('trainer_dashboard')
 
     set_skills_form = AddTrainerSkillsForm()
+    skills = TrainerSkills.objects.filter(trainer=trainer).order_by('-created')
 
     if request.method == 'POST':
-        skill = request.POST.get('skill')
-        print(skill)
-        if skill:
-            trainer_skill = TrainerSkills.objects.create(trainer=trainer, skill=skill)
-            trainer_skill.save()
-            trainer.skills.add(trainer_skill.pk)
-            trainer.save()
-        messages.success(request, 'Skills updated successfully')
+        set_skills_form = AddTrainerSkillsForm(request.POST)
+        if set_skills_form.is_valid():
+            trainer_skills = set_skills_form.save(commit=False)
+            trainer_skills.trainer = trainer
+            trainer_skills.save()
+            messages.success(request, 'Skills updated successfully')
            
-        
     else:
         set_skills_form = AddTrainerSkillsForm()
 
     context = {
         'form': set_skills_form,
-        'trainer': trainer
+        'trainer': trainer,
+        'skills': skills
     }
 
 
     return render(request, 'core/trainer/set_skills.html', context)
+
+def add_skills(request, pk):
+    try:
+        trainer = Trainer.objects.get(pk=pk)
+    except Trainer.DoesNotExist:
+        messages.error(request, 'You are not a trainer, please contact the system admin')
+        return redirect('account_login')
+    
+    if request.method == 'POST':
+        skill = request.POST.get('skill')
+        TrainerSkills.objects.create(trainer=trainer, skill=skill)
+        messages.success(request, 'Skill added successfully')
+    
+    skills = TrainerSkills.objects.filter(trainer=trainer)
+
+    context = {
+        'skills': skills,
+        'trainer': trainer
+    }
+    
+    return render(request, 'core/trainer/partials/add_skills.html', context)
+
+@csrf_exempt
+@login_required
+def delete_skill(request, pk):
+    try:
+        skill = get_object_or_404(TrainerSkills, pk=pk)
+        skill.delete()
+        messages.success(request, 'Skill deleted successfully')
+    except TrainerSkills.DoesNotExist:
+        messages.error(request, 'Skill not found')
+    
+    skills = TrainerSkills.objects.all()
+
+    context = {
+        'skills': skills,
+        # 'trainer': trainer
+    }
+    
+    return render(request, 'core/trainer/partials/add_skills.html', context)
+
 
 @login_required
 def manager_settings(request):
@@ -496,6 +554,30 @@ def manager_settings(request):
 def reports(request):
     
         return render(request, 'core/management/reports.html')
+
+
+
+def trainer_assignments(request):
+    trainer = Trainer.objects.get(user=request.user)
+    return render(request, 'core/trainer/assignments.html', {'trainer':trainer})
+
+def trainer_schedules(request):
+    trainer = Trainer.objects.get(user=request.user)
+    return render(request, 'core/trainer/schedules.html', {'trainer':trainer})
+
+def trainer_grades(request):
+    trainer = Trainer.objects.get(user=request.user)
+    return render(request, 'core/trainer/grades.html', {'trainer':trainer})
+
+def trainer_reports(request):
+    trainer = Trainer.objects.get(user=request.user)
+
+    return render(request, 'core/trainer/reports.html', {'trainer':trainer})
+
+def trainer_settings(request):
+    trainer = Trainer.objects.get(user=request.user)
+    return render(request, 'core/trainer/settings.html', {'trainer':trainer})
+
 
 @login_required
 def about(request):

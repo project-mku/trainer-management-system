@@ -31,30 +31,11 @@
 
 <div class="p-2 bg-white rounded-lg shadow md:p-4 mt-2 md:w-[60%] mx-auto h-[70vh] overflow-y-auto">
   
-    <h2 class="mb-4 text-xl font-semibold">Add Skills.</h2>
+    <h2 class="mb-4 text-xl font-semibold">Student Reports.</h2>
     
     <!-- Additional content and components can go here -->
-    <div class="">
-        
-        <form method="post" enctype="multipart/form-data" class="" hx-post="{% url 'add_skills' trainer.id %}" hx-target="#all_skills" hx-trigger="submit">
-          {% csrf_token %}
-          
-          {{ form }}
-          
-          <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2">
-            Add Skill
-          </button>
-      </form>
-      <div id="all_skills" class="mb-4">
-        {% include "core/trainer/partials/add_skills.html" %}
-      </div>
-    </div>
+   
 </div>
 
-<script>
-  document.addEventListener('htmx:afterRequest', function() {
-      // Clear the value of the input field after the form is submitted
-      document.querySelector('#id_skill').value = '';
-  });
-</script>
+
 {% endblock content %}

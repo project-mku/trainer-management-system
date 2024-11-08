@@ -32,6 +32,17 @@ urlpatterns = [
     path('trainer_dashboard/', views.trainer_dashboard, name='trainer_dashboard'),
     path('trainer_dashboard/update_details/<int:pk>/', views.update_trainer_details, name='update_trainer_details'),
     path('trainer_dashboard/set_skill/<int:pk>/', views.set_trainer_skills, name='set_skill'),
+    path('trainer_dashboard/add_skill/<int:pk>/', views.add_skills, name='add_skills'),
+    path('trainer_dashboard/delete_skill/<int:pk>/', views.delete_skill, name='delete_skill'),
+    path('trainer_dashboard/assignments/', views.trainer_assignments, name='trainer_assignments'),
+    path('trainer_dashboard/schedules/', views.trainer_schedules, name='trainer_schedules'),
+    path('trainer_dashboard/grades/', views.trainer_grades, name='trainer_grades'),
+    path('trainer_dashboard/reports/', views.trainer_reports, name='trainer_reports'),
+    path('trainer_dashboard/settings/', views.trainer_settings, name='trainer_settings'),
+
+
+
+
 
     
 

@@ -50,19 +50,6 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.email  
 
-class TrainerSkills(models.Model):
-    '''Model definition for TrainerSkills.'''
-    trainer = models.ForeignKey('Trainer', on_delete=models.CASCADE)
-    skill = models.CharField(max_length=100)
-
-    class Meta:
-        '''Meta definition for TrainerSkills.'''
-        verbose_name = 'Trainer Skill'
-        verbose_name_plural = 'Trainer Skills'
-
-    def __str__(self):
-        return f'{self.skill} - {self.trainer}'
-
 class Trainer(models.Model):
     '''Model definition for Trainer.'''
     SALARY_TYPE_CHOICES = [
@@ -82,7 +69,6 @@ class Trainer(models.Model):
     id_number = models.CharField(max_length=10, blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     bio = models.TextField(blank=True, null=True, help_text='A brief description about you as a trainer')
-    skills = models.ManyToManyField(TrainerSkills, blank=True, related_name='trainer_skills')
     years_of_experience = models.IntegerField(default=0, blank=True, null=True)
     profile_picture = models.ImageField(upload_to='trainer_pics/', blank=True, null=True)
     trainer_status = models.CharField(max_length=10, choices=STATUSCHOICES, default='active')
@@ -104,9 +90,29 @@ class Trainer(models.Model):
         indexes = [
             models.Index(fields=['first_name', 'last_name']),
         ]
+
+    @property
+    def payment_mode(self):
+        return self.salary_type
     
     def __str__(self):
         return f'{self.user.username}'
+
+class TrainerSkills(models.Model):
+    '''Model definition for TrainerSkills.'''
+    trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
+    skill = models.CharField(max_length=100)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        '''Meta definition for TrainerSkills.'''
+        verbose_name = 'Trainer Skill'
+        verbose_name_plural = 'Trainer Skills'
+        ordering = ['-created']
+
+    def __str__(self):
+        return f'{self.skill} - {self.trainer}'
 
 class Payroll(models.Model):
     """

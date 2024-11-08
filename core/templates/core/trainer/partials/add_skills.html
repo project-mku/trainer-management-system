@@ -1,0 +1,43 @@
+
+<div class="messages">
+    {% if messages %}
+      {% for message in messages %}
+    
+        {% if message.tags == 'info' %}
+          <div class="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50" role="alert">
+            <span class="font-medium">Warning!</span> {{ message }}
+          </div>
+        {% elif message.tags == 'success' %}
+          <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+            <span class="font-medium">Success!</span> {{ message }}
+          </div>
+        {% elif message.tags == 'error' %}
+          <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+            <span class="font-medium">Error!</span> {{ message }}
+          </div>  
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </div>
+
+{% if skills %}
+    {% for skill in skills %}
+    <ul>
+        <li>
+            <div class="flex items-center justify-between p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50" role="alert">
+                <span>{{ skill.skill }}</span>
+                <div class="flex action">
+                    <!-- <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="cursor-pointer" style="fill: rgb(36, 145, 26);"><path d="m18.988 2.012 3 3L19.701 7.3l-3-3zM8 16h3l7.287-7.287-3-3L8 13z"></path><path d="M19 19H8.158c-.026 0-.053.01-.079.01-.033 0-.066-.009-.1-.01H5V5h6.847l2-2H5c-1.103 0-2 .896-2 2v14c0 1.104.897 2 2 2h14a2 2 0 0 0 2-2v-8.668l-2 2V19z"></path>
+                    </svg> -->
+                     
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" hx-post="{% url 'delete_skill' skill.id %}" hx-trigger="click" hx-target="#all_skills" viewBox="0 0 24 24" class="ml-5 cursor-pointer" style="fill: rgb(212, 14, 14);"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path>
+                    </svg>
+                </div>  
+
+            </div>
+        </li>
+    </ul>
+    {% endfor %}
+{% else %}
+    <p class="p-2 text-blue-600 bg-blue-100 rounded">No skills found!</p>
+{% endif %}

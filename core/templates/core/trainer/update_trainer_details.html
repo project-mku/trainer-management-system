@@ -7,24 +7,28 @@
 {% block header %}Hello {{ request.user.username | title }}. {% endblock header %}
 
 {% block content %}
-{% if messages %}
-{% for message in messages %}
 
-  {% if message.tags == 'info' %}
-    <div class="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50" role="alert">
-      <span class="font-medium">Warning!</span> {{ message }}
-    </div>
-  {% elif message.tags == 'success' %}
-    <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
-      <span class="font-medium">Success!</span> {{ message }}
-    </div>
-  {% elif message.tags == 'error' %}
-    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
-      <span class="font-medium">Error!</span> {{ message }}
-    </div>  
+<div class="messages">
+  {% if messages %}
+    {% for message in messages %}
+
+      {% if message.tags == 'info' %}
+        <div class="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50" role="alert">
+          <span class="font-medium">Warning!</span> {{ message }}
+        </div>
+      {% elif message.tags == 'success' %}
+        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+          <span class="font-medium">Success!</span> {{ message }}
+        </div>
+      {% elif message.tags == 'error' %}
+        <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+          <span class="font-medium">Error!</span> {{ message }}
+        </div>  
+      {% endif %}
+    {% endfor %}
   {% endif %}
-{% endfor %}
-{% endif %}
+</div>
+
 <div class="p-4 bg-white rounded-lg shadow">
     <h2 class="mb-4 text-xl font-semibold">Update Personal Details.</h2>
     
@@ -36,9 +40,9 @@
             
             {{form}}
             
-            <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2">Update</button>
+            <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2" hx-on:click="alert('You clicked me!')">Update</button>
         </form>
-        
+
     </div>
 </div>
 {% endblock content %}

@@ -265,6 +265,16 @@ class AddPayRoll(forms.ModelForm):
             
         }
 
-class AddTrainerSkillsForm(forms.Form):
-    skill = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'mt-1 mb-4 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500', 'placeholder': 'Skill', 'name' : 'skill', 'required': True}))
+class AddTrainerSkillsForm(forms.ModelForm):
+    class Meta:
+        model = TrainerSkills
+        fields = ['skill']
+        widgets = {
+            'skill': forms.TextInput(attrs={'class': 'mt-1 mb-4 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500', 'placeholder': 'Skill', 'name' : 'skill', 'required': True}),
+        }
+
+class PayTrainerForm(forms.Form):
+    trainer = forms.Select(
+        choices=Trainer.objects.all()
+    )
 
