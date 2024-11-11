@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils import timezone
+import uuid
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -67,6 +68,7 @@ class Trainer(models.Model):
     last_name = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(unique=True, blank=True, null=True)
     id_number = models.CharField(max_length=10, blank=True, null=True)
+    trainer_no = models.CharField(max_length=10, blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     bio = models.TextField(blank=True, null=True, help_text='A brief description about you as a trainer')
     years_of_experience = models.IntegerField(default=0, blank=True, null=True)
@@ -78,6 +80,7 @@ class Trainer(models.Model):
     # Payroll related fields
     salary_type = models.CharField(max_length=6, choices=SALARY_TYPE_CHOICES, default='fixed', help_text="How would you like to be paid?")
     base_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)  # For fixed salary
+    hours_worked = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)  # For hourly payments
     hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)  # For hourly payments
     on_payroll = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -96,7 +99,16 @@ class Trainer(models.Model):
         return self.salary_type
     
     def __str__(self):
-        return f'{self.user.username}'
+        return f'{self.first_name} {self.last_name} - {self.department}'
+    
+    def save(self, *args, **kwargs):
+        if self.salary_type == 'hourly':
+            self.base_salary = int(self.hourly_rate * self.hours_worked)
+        
+        if not self.trainer_no:
+            self.trainer_no = f'TR_{uuid.uuid4().hex[:6].upper()}'
+
+        super().save(*args, **kwargs)
 
 class TrainerSkills(models.Model):
     '''Model definition for TrainerSkills.'''
@@ -142,7 +154,7 @@ class Payroll(models.Model):
     ]
     
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
-    month = models.CharField(max_length=10, help_text="Month of the payroll", choices=MonthChoices.choices, null=True, blank=True)
+    month = models.CharField(max_length=10, choices=MonthChoices.choices, null=True, blank=True)
     pay_period_start = models.DateField()
     pay_period_end = models.DateField()
     hours_worked = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # For hourly rate trainers
@@ -162,24 +174,7 @@ class Payroll(models.Model):
         if self.trainer.salary_type == 'fixed':
             return self.trainer.base_salary
         elif self.trainer.salary_type == 'hourly':
-            return self.trainer.hourly_rate * self.hours_worked
-
-    def pay_trainer(self):
-        """
-        Process the payroll and deduct the payment from the school account.
-        """
-        if self.status == 'pending':
-            school_account = SchoolAccount.objects.first()  # Assuming one school account
-            if school_account:
-                total_payment = self.calculate_total_payment()
-                if total_payment:
-                    school_account.deduct_funds(total_payment)
-                    self.status = 'paid'
-                    self.payment_date = timezone.now().date()
-                    self.total_payment = total_payment
-                    self.save()
-            else:
-                raise ValueError("School account not found.")   
+            return self.trainer.hourly_rate * self.hours_worked   
 
 class PaymentMethod(models.Model):
     PAYMENT_TYPE_CHOICES = [
@@ -305,44 +300,6 @@ class Feedback(models.Model):
     def __str__(self):
         return f'Feedback for {self.course.title} by {self.student}'
 
-# class Payment(models.Model):
-#     """
-#     Manage payments for Trainers.
-#     """
-
-#     class PaymentStatus(models.TextChoices):
-#         PENDING = 'pending', 'Pending'
-#         PAID = 'paid', 'Paid'
-#         CANCELLED = 'cancelled', 'Cancelled'
-
-#     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
-#     amount = models.DecimalField(max_digits=10, decimal_places=2)
-#     pay_period_start = models.DateField()
-#     pay_period_end = models.DateField()
-#     payment_date = models.DateField(auto_now_add=True)
-#     payment_status = models.CharField(default=PaymentStatus.PENDING, max_length=10, choices=PaymentStatus.choices)
-    
-#     class Meta:
-#         verbose_name = 'Payment'
-#         verbose_name_plural = 'Payments'
-
-#     def __str__(self):
-#         return f'Payment of {self.amount} by {self.student} for {self.course.title}'
-
-#     def process_payment(self):
-#         """
-#         Process student payment and add funds to the school account.
-#         """
-#         if not self.payment_status:
-#             # Add funds to the school account
-#             school_account = SchoolAccount.objects.first()  # Assuming one school account
-#             if school_account:
-#                 school_account.add_funds(self.amount)
-#                 self.payment_status = True
-#                 self.save()
-#             else:
-#                 raise ValueError("School account not found.")
-
 class Manager(models.Model):
 
     '''Model definition for Manager.'''
@@ -390,25 +347,55 @@ class ManagerAuthenticationCodes(models.Model):
     def __str__(self):
         return self.code
 
+class Allowances(models.Model):
+    """
+    Represents allowances that may be added to a trainer's salary, such as bonuses, overtime, etc.
+    """
+    trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name = 'Allowance'
+        verbose_name_plural = 'Allowances'
+
+    def __str__(self):
+        return f'{self.trainer.user.username} {self.name} - {self.amount}'
+
+class Deductions(models.Model):
+    """
+    Represents deductions that may be applied to a trainer's salary, such as taxes, insurance, etc.
+    """
+    trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name = 'Deduction'
+        verbose_name_plural = 'Deductions'
+
+    def __str__(self):
+        return f'{self.name} - {self.amount}'
+
 class Payslip(models.Model):
     """
     Represents a detailed payslip for each payroll payment to a trainer, including
     gross pay, deductions, and net pay.
     """
     payroll = models.OneToOneField(Payroll, on_delete=models.CASCADE)
-    trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
+    deductions = models.ManyToManyField(Deductions, blank=True, related_name='payslip_deductions')
+    allowances = models.ManyToManyField(Allowances, blank=True, related_name='payslip_allowances')
+    gross_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, blank=True, null=True)
+    net_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, blank=True, null=True)
     issue_date = models.DateField(auto_now_add=True)
-    gross_salary = models.DecimalField(max_digits=10, decimal_places=2)
-    deductions = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    net_salary = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = models.ForeignKey(PaymentMethod, on_delete=models.SET_NULL, null=True)
+    status = models.CharField(max_length=10, choices=Payroll.PAYROLL_STATUS_CHOICES, default='pending')
 
     class Meta:
         verbose_name = 'Payslip'
         verbose_name_plural = 'Payslips'
 
     def __str__(self):
-        return f'Payslip for {self.trainer} on {self.issue_date}'
+        return f'Payslip for {self.payroll.trainer.user.username} on {self.issue_date}'
 
     def calculate_net_salary(self):
         """
@@ -439,7 +426,7 @@ class SchoolAccount(models.Model):
         verbose_name_plural = 'School Accounts'
 
     def __str__(self):
-        return f'School Account with Balance: {self.total_balance}'
+        return f'{self.bank_name} Balance: {self.total_balance}'
 
     def add_funds(self, amount):
         """Add funds to the school account when students pay for courses."""
@@ -454,3 +441,19 @@ class SchoolAccount(models.Model):
         else:
             raise ValueError("Insufficient funds in the school account.")
 
+class Report(models.Model):
+    """
+    This model will store reports generated by managers or trainers.
+    """
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    created_by = models.ForeignKey(Manager, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Report'
+        verbose_name_plural = 'Reports'
+
+    def __str__(self):
+        return self.title

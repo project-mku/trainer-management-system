@@ -7,7 +7,7 @@
 {% endblock header %}
 
 {% block content %}
-    <div class="container mx-auto mt-6">
+    <div class="container mx-auto mt-6" id="messages">
         {% if messages %}
         {% for message in messages %}
         
@@ -39,7 +39,7 @@
                 <!-- Backdrop -->
                 <div class="fixed inset-0 bg-black opacity-70"></div>
 
-                <div class="relative w-full max-w-2xl max-h-full p-4">
+                <div class="relative w-full max-w-2xl max-h-full p-4 overflow-y-auto">
                     <!-- Modal content -->
                     <div class="relative bg-white rounded-lg shadow">
                         <!-- Modal header -->
@@ -58,12 +58,10 @@
                         <div class="p-4 space-y-4 md:p-5">
                             <form method="post">
                                 {% csrf_token %}
-                                {{form.as_p}}
-                                <div class="flex items-center p-4 border-t border-gray-200 rounded-b md:p-5">
-                                    <button data-modal-hide="static-modal" type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Update</button>
-                                    
-                                    <button data-modal-hide="static-modal" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100">Cancel</button>
-                                </div>
+                                {{select_trainer_form.as_p}}
+                                
+                                <div id="trainer_details"></div>
+
                             </form>
                         </div>
                         
@@ -71,7 +69,16 @@
                 </div>
             </div>
         </div>
-        <div class="min-h-[70vh] overflow-y-auto bg-white content p-10">
+        <div class="flex mb-5 navigator">
+            <button hx-get="{% url 'get_payroll_trainers' %}" hx-target="#payroll_details" hx-trigger="click" class="block mr-5 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center" type="button">
+                Payroll Trainers
+            </button>
+
+            <button hx-get="{% url 'get_non_payroll_trainers' %}" hx-target="#payroll_details" hx-trigger="click" class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center" type="button">
+                None Payroll Trainers
+            </button>
+        </div>
+        <div class="min-h-[70vh] overflow-y-auto bg-white content p-10" id="payroll_details">
             {% if payrolls %}             
                 <div class="relative overflow-x-auto shadow-[0_3px_10px_rgb(0,0,0,0.2)] sm:rounded-lg">
                     <table class="w-full text-sm text-left text-gray-500 rtl:text-right">
@@ -146,4 +153,20 @@
             {% endif %}
         </div>
     </div>
+
+
+<script>
+    const indicator = document.getElementById('indicator');
+    const pay_btn_payroll = document.getElementById('pay_btn');
+    const pay_btn_non_payroll = document.getElementById('pay_btn');
+
+    const btn_remover = () => {
+        alert('Hello');
+        
+    }
+    
+</script>
+
+
+
 {% endblock content %}

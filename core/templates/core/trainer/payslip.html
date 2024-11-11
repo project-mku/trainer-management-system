@@ -1,0 +1,84 @@
+
+
+{% extends 'trainer_base.html' %}
+
+{% block title %}update details{% endblock title %}
+
+{% block header %}Hello {{ request.user.username | title }}. {% endblock header %}
+
+{% block content %}
+
+<div class="messages">
+  {% if messages %}
+    {% for message in messages %}
+
+      {% if message.tags == 'info' %}
+        <div class="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50" role="alert">
+          <span class="font-medium">Warning!</span> {{ message }}
+        </div>
+      {% elif message.tags == 'success' %}
+        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+          <span class="font-medium">Success!</span> {{ message }}
+        </div>
+      {% elif message.tags == 'error' %}
+        <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+          <span class="font-medium">Error!</span> {{ message }}
+        </div>  
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+</div>
+
+<div class="p-2 bg-white rounded-lg shadow md:p-4 mt-2 md:w-[90%] mx-auto h-[70vh] overflow-y-auto">
+  
+    <h2 class="mb-4 text-xl font-semibold">My Payslips.</h2>
+    
+    {% if payslips %}
+        <div class="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {% for payslip in payslips %}
+            <div class="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow">
+              
+              <a href="#" class="flex items-center justify-between">
+                  <h5 class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900">
+                      {{ payslip.payroll.month|title }} - {{ payslip.payroll.payment_date.year }} Payment
+                  </h5>
+                  <div class="status">
+                    {% if payslip.payroll.status == 'paid' %}
+                      <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">Approved</span>
+                    {% elif payslip.payroll.status == 'pending' %}
+                      <span class="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">Pending</span>
+                    {% elif payslip.payroll.status == 'cancelled' %}
+                      <span class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">Rejected</span>
+                    {% endif %}
+                  </div>
+              </a>
+              <div class="caption">
+                {% if payslip.payroll.status == 'paid' %}
+                  <p class="mb-3 font-normal text-gray-700">Payment Processed Successfully.</p>
+                {% elif payslip.payroll.status == 'cancelled'  %}
+                  <p class="mb-3 font-normal text-gray-700">Sorry! Your Payment was Rejected.</p>
+                {% elif payslip.payroll.status == 'pending'  %}
+                  <p class="mb-3 font-normal text-gray-700">Payment Pending.</p>
+                {% endif %}
+                
+              </div>
+              
+              <a href="{% url 'trainer_payslip_details' payslip.id %}" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300">
+                  View Payslip
+                  <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                  </svg>
+              </a>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="p-4 text-center text-gray-500">
+          <p>You have no payslips yet.</p>
+        </div>
+    {% endif %}
+   
+</div>
+
+
+{% endblock content %}

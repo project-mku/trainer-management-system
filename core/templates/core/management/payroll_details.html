@@ -88,6 +88,7 @@
                         <th class="py-3 pr-6">Payment Period</th>
                         <th class="py-3 pr-6">status</th>
                         <th class="py-3 pr-6">Payment Date</th>
+                        <th class="py-3 pr-6">Payslip</th>
                     </tr>
                 </thead>
                 <tbody class="text-gray-600 divide-y">
@@ -111,8 +112,9 @@
                                     </span>
                                 {% endif %}
                             </td>
-                            <td class="py-3 pr-6">{{payroll.payment_date}}</td>
                             
+                            <td class="py-3 pr-6">{{payroll.payment_date}}</td>
+                            <td class="py-3 pr-6"><a href="{% url 'manage_trainer_payslip' payroll.id %}" class="inline-flex items-center font-medium text-blue-600 hover:underline">View Payslip</a></td>
                         </tr>
                 </tbody>
             </table>

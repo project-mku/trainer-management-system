@@ -1,0 +1,46 @@
+{% load crispy_forms_tags %}
+
+
+
+    <h3 class="font-bold text-center bg-green-100 text-green-800 text-xs mb-2 me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">Payroll User</h3>
+    
+    {% if messages %}
+        {% for message in messages %}
+        
+          {% if message.tags == 'info' %}
+            <div class="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50" role="alert">
+              <span class="font-medium">Warning!</span> {{ message }}
+            </div>
+          {% elif message.tags == 'success' %}
+            <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+              <span class="font-medium">Success!</span> {{ message }}
+            </div>
+          {% elif message.tags == 'error' %}
+            <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+              <span class="font-medium">Error!</span> {{ message }}
+            </div>  
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+      
+    {% csrf_token %}
+    {{ form |crispy }}
+
+    {% csrf_token %}
+    {{ payroll_form |crispy }}
+
+
+    <p class="mt-2 mb-2 text-xs italic">Do you think {{ trainer.first_name }} is on Payroll by Mistake? <a href="{% url 'trainer_details' trainer.id %}" class="inline-flex items-center font-medium text-blue-600 hover:underline">Update Details</a></p>
+        
+{% if accounts_count %}
+
+        {% csrf_token %}
+        {{select_account_form |crispy }}
+
+        <div id="pay_results"></div>
+        <button type="submit" id="pay_btn" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Pay Trainer</button>
+{% else %}
+<p class="mt-2 mb-2 text-xs italic">No Bank accounts Connected<a href="{% url 'manager_dashboard_accounts' %}" class="inline-flex items-center font-medium text-blue-600 hover:underline">Connect Bank Account</a></p>
+{% endif %}
+
+

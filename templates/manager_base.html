@@ -24,7 +24,7 @@
                     <!-- <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700">Students</a> -->
                     <a href="{% url 'reports' %}" class="block px-4 py-2 rounded hover:bg-gray-700">Reports</a>
                     <!-- <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700">Feedback</a> -->
-                    <a href="{% url 'manager_settings' %}" class="block px-4 py-2 rounded hover:bg-gray-700">Settings</a>
+                    <!-- <a href="{% url 'manager_settings' %}" class="block px-4 py-2 rounded hover:bg-gray-700">Settings</a> -->
                     <form action="{% url 'logout' %}" method="post">
                         {% csrf_token %}    
                         <button type="submit" class="block w-full px-4 py-2 mt-4 text-left rounded hover:bg-gray-700">Logout</button>

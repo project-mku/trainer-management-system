@@ -18,12 +18,8 @@
             <nav>
                 <a href="{% url 'trainer_dashboard' %}" class="block px-4 py-2 rounded hover:bg-blue-700">Dashboard</a>
                 <a href="{% url 'set_skill' trainer.id %}" class="block px-4 py-2 rounded hover:bg-blue-700">Skills</a>
-                <!-- <a href="#" class="block px-4 py-2 rounded hover:bg-blue-700">Courses</a> -->
-                <a href="{% url 'trainer_assignments' %}" class="block px-4 py-2 rounded hover:bg-blue-700">Assignments</a>
-                <a href="{% url 'trainer_schedules' %}" class="block px-4 py-2 rounded hover:bg-blue-700">Schedules</a>
-                <a href="{% url 'trainer_grades' %}" class="block px-4 py-2 rounded hover:bg-blue-700">Grades</a>
-                <a href="{% url 'trainer_reports' %}" class="block px-4 py-2 rounded hover:bg-blue-700">Reports</a>
-                <a href="{% url 'trainer_settings' %}" class="block px-4 py-2 rounded hover:bg-blue-700">Settings</a>
+                <a href="{% url 'trainer_payslip' %}" class="block px-4 py-2 rounded hover:bg-blue-700">My Payslips</a>
+                <!-- <a href="{% url 'trainer_settings' %}" class="block px-4 py-2 rounded hover:bg-blue-700">Settings</a> -->
                 <form action="{% url 'logout' %}" method="post">
                     {% csrf_token %}
                     <button type="submit" class="block w-full px-4 py-2 mt-4 text-left rounded hover:bg-blue-700">Logout</button>
@@ -70,7 +66,7 @@
     {% block extra_body %}
     {% endblock extra_body %}
 
-    <script src="{% static 'js/alpinejs.min.js' %}"></script>\
+    <script src="{% static 'js/alpinejs.min.js' %}"></script>
     <script src="{% static 'js/htmx.min.js' %}"></script>
 
 </body>
